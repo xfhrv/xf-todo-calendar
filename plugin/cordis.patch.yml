@@ -1,0 +1,8 @@
+- insert:
+    - id: xf-todo-calendar
+      name: '@local/xf-todo-calendar'
+      config:
+        # 数据文件；留空则用 ~/.dsh/xf-todo-calendar/store.json
+        storePath: ''
+        # 本地路由前缀（浏览器与微信通道都用它）
+        route: '/.dsh-todo'

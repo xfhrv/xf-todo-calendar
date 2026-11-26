@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:" />
+    <title>XF 待办日历</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>XF 待办日历</span>
+      </div>
+      <div class="topbar-right">
+        <span id="status" class="status">正在同步…</span>
+        <button id="pin" class="ghost pin" aria-pressed="false" title="窗口置顶（保持在其他窗口之上）">置顶</button>
+        <button id="hide" class="ghost" title="收进托盘（也可直接关闭窗口）">收进托盘</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="calendar">
+        <div class="cal-head">
+          <button id="prev" class="nav" title="上个月">‹</button>
+          <h1 id="month"></h1>
+          <button id="next" class="nav" title="下个月">›</button>
+          <button id="today" class="ghost small">今天</button>
+        </div>
+        <div class="weekdays">
+          <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+        </div>
+        <div id="grid" class="grid"></div>
+        <p class="hint">提示：把条目拖到日期上是“安排”，拖到下面三个列表可以互相转移。</p>
+      </section>
+
+      <section class="zones">
+        <div class="zone" data-zone="inbox">
+          <div class="zone-head">
+            <h2>收集箱</h2>
+            <span class="count" id="inbox-count"></span>
+          </div>
+          <div class="chips" id="inbox-chips"></div>
+          <form class="add" data-add="inbox">
+            <input type="text" placeholder="先丢进收集箱，之后再安排" maxlength="200" />
+            <button type="submit">添加</button>
+          </form>
+          <ul class="rows" id="inbox-rows"></ul>
+        </div>
+
+        <div class="zone" data-zone="day">
+          <div class="zone-head">
+            <h2>当天</h2>
+            <span class="sub" id="day-label"></span>
+            <span class="count" id="day-count"></span>
+          </div>
+          <div class="chips" id="day-chips"></div>
+          <form class="add" data-add="day">
+            <input type="text" placeholder="添加当天的待办" maxlength="200" />
+            <button type="submit">添加</button>
+          </form>
+          <ul class="rows" id="day-rows"></ul>
+        </div>
+
+        <div class="zone" data-zone="waiting">
+          <div class="zone-head">
+            <h2>等待</h2>
+            <span class="count" id="waiting-count"></span>
+          </div>
+          <div class="chips" id="waiting-chips"></div>
+          <form class="add" data-add="waiting">
+            <input type="text" placeholder="在等谁、等什么" maxlength="200" />
+            <button type="submit">添加</button>
+          </form>
+          <ul class="rows" id="waiting-rows"></ul>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+    <script src="index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "@local/xf-todo-calendar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "XF 待办日历：DSH 右/左侧栏的本地待办日历（离线，无服务器）",
+  "license": "MIT",
+  "type": "module",
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["./client.js"]
+    }
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "icon.svg",
+    "locale"
+  ]
+}

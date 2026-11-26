@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:" />
+    <title>快速添加</title>
+    <style>
+      :root {
+        --panel: rgba(255, 255, 255, 0.97);
+        --line: rgba(0, 0, 0, 0.12);
+        --text: #1c2026;
+        --muted: #6b7280;
+        --accent: #3b6fe0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --panel: rgba(31, 33, 38, 0.97);
+          --line: rgba(255, 255, 255, 0.14);
+          --text: #e8eaee;
+          --muted: #9aa1ac;
+          --accent: #6d94ec;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+      body {
+        font: 14px/1.5 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+        color: var(--text);
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 10px;
+      }
+      .card {
+        width: 100%;
+        max-height: calc(100vh - 20px);
+        display: flex;
+        flex-direction: column;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+        padding: 14px 16px 12px;
+        -webkit-app-region: drag;
+      }
+      input { flex: none;
+        width: 100%;
+        -webkit-app-region: no-drag;
+        font: inherit;
+        font-size: 16px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: inherit;
+        outline: none;
+      }
+      input:focus { border-color: var(--accent); }
+      .hint { margin: 8px 2px 0; color: var(--muted); font-size: 12px; }
+      .result { margin: 6px 2px 0; color: var(--accent); font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow: auto; min-height: 0; }
+      .result.error { color: #d2483f; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <input id="input" type="text" maxlength="200" placeholder="输入内容回车加入收集箱，或用 /add /box /td /wt" />
+      <p class="hint">Enter 提交 · Esc 关闭 · /add 文本 · /box 收集箱 · /td 当天 · /wt 等待</p>
+      <div id="result" class="result"></div>
+    </div>
+    <script src="quick.js"></script>
+  </body>
+</html>

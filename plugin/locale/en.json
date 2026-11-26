@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "XF Todo Calendar",
+    "description": "Shows a small calendar plus today's list at the foot of the left sidebar (tick items off or type a new one right there); pick a date to work on that day in the right sidebar's \"XF Todo Calendar\" tab. That tab keeps three lists side by side — Inbox, This day, and Waiting — each with its own add field and its own #tag filter. Drag an inbox item onto a calendar date to give it a date; the three lists accept drops from each other too. Write #tags in an entry and each list groups by tag. Everything is stored locally (~/.dsh/xf-todo-calendar/store.json): no account, no network.",
+    "detail": "docs/DETAIL.md"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "xf-todo-calendar",
+  "productName": "XF 待办日历",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "XF 待办日历：收集箱 / 当天 / 等待 三栏 + 日历的本地桌面待办（离线）",
+  "license": "MIT",
+  "author": "徐费皓苒",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "selftest": "electron . --selftest",
+    "icon": "node make-icon.mjs",
+    "dist": "electron-packager . XFTodoCalendar --platform=win32 --arch=x64 --out=dist --overwrite --icon=assets/icon.ico --asar --app-version=1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^45.5.0",
+    "@electron/packager": "^18.4.0"
+  }
+}
