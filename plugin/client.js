@@ -94,6 +94,12 @@ window.__ModuleLoader__.load({
       todayEmpty: '今天还没有待办',
       filterLabel: '按主题筛选',
       filterAll: '全部',
+      archiveShow: '已归档 {count} 条 · 展开',
+      waitingStarted: '开始 {day}',
+      waitingFinished: '{from} → {to}',
+      waitingTotal: '共 {count} 天',
+      waitingFinishedUnknown: '已完成',
+      archiveHide: '已归档 {count} 条 · 收起',
       todayAddPlaceholder: '添加今天的待办',
       todayMarkDone: '标记为完成',
       todayMarkUndone: '标记为未完成',      planHint: '拖到日期上安排',
@@ -169,6 +175,12 @@ window.__ModuleLoader__.load({
       todayEmpty: 'Nothing for today yet',
       filterLabel: 'Filter by topic',
       filterAll: 'All',
+      archiveShow: 'Archived {count} · show',
+      archiveHide: 'Archived {count} · hide',
+      waitingStarted: 'started {day}',
+      waitingFinished: '{from} → {to}',
+      waitingTotal: '{count} days total',
+      waitingFinishedUnknown: 'done',
       todayAddPlaceholder: 'Add a to-do for today',
       todayMarkDone: 'Mark as done',
       todayMarkUndone: 'Mark as not done',      planHint: 'Drag onto a date to schedule it',
@@ -885,6 +897,10 @@ window.__ModuleLoader__.load({
       const filteredPlanned = filterItems(planned, inboxFilter);
       const filteredOrdered = filterItems(ordered, dayFilter);
       const filteredWaiting = filterItems(orderedWaiting, waitingFilter);
+      // A ticked waiting item is archived: gone from the list, still reachable below.
+      const activeWaiting = filteredWaiting.filter((item) => !item.done);
+      const archivedWaiting = filteredWaiting.filter((item) => item.done);
+      const [showArchived, setShowArchived] = useState(false);
 
       const moveMonth = (delta) => {
         const target = new Date(view.year, view.month + delta, 1);
@@ -1184,6 +1200,32 @@ window.__ModuleLoader__.load({
         );
       };
 
+      /** M-D, for the compact start/finish stamps on a waiting row. */
+      const shortDay = (stamp) => {
+        const date = new Date(stamp);
+        return date.getMonth() + 1 + '-' + String(date.getDate()).padStart(2, '0');
+      };
+
+      /** How long an item has been outstanding, counted in calendar days. */
+      const waitingDays = (from, to) => {
+        const days = Math.round((startOfDay(to) - startOfDay(from)) / 86400000);
+        return days <= 0 ? 1 : days;
+      };
+
+      /** "开始 11-20 · 已等 6 天" while waiting, "11-20 → 11-26 · 共 6 天" once archived. */
+      const waitingStamp = (item) => {
+        if (!Number.isFinite(item.createdAt) || item.createdAt <= 0) {
+          return item.done ? t('waitingFinishedUnknown') : t('waitingToday');
+        }
+        const from = shortDay(item.createdAt);
+        if (item.done) {
+          const finished = Number.isFinite(item.completedAt) && item.completedAt > 0 ? item.completedAt : 0;
+          if (finished <= 0) return t('waitingStarted', { day: from }) + ' · ' + t('waitingFinishedUnknown');
+          return t('waitingFinished', { from, to: shortDay(finished) }) + ' · ' + t('waitingTotal', { count: String(waitingDays(item.createdAt, finished)) });
+        }
+        return t('waitingStarted', { day: from }) + ' · ' + waitingAge(item);
+      };
+
       /** How long an item has been outstanding, counted in calendar days. */
       const waitingAge = (item) => {
         if (!Number.isFinite(item.createdAt) || item.createdAt <= 0) return t('waitingToday');
@@ -1220,7 +1262,7 @@ window.__ModuleLoader__.load({
             item.done ? h(CheckGlyph) : null
           ),
           isEditing ? renderEditInput({ id: item.id, title: item.title }) : renderTitleButton(item),
-          h('span', { className: 'dsh-todo-age' }, item.done ? t('waitingDone') : waitingAge(item)),
+          h('span', { className: 'dsh-todo-age', title: item.done ? t('waitingFinishedUnknown') : undefined }, waitingStamp(item)),
           h(
             'button',
             {
@@ -1388,12 +1430,31 @@ window.__ModuleLoader__.load({
             onDragLeave: (event) => leaveWithin(event, () => clearSectionDrop('waiting')),
             onDrop: (event) => dropOnSection(event, 'waiting')
           },
-          renderHead(t('waitingHeading'), null, filteredWaiting.length),
+          renderHead(t('waitingHeading'), null, activeWaiting.length),
           h(TodoBoundary, null, renderTagFilter('waiting', orderedWaiting)),
           renderAdd(waitingDraft, setWaitingDraft, t('waitingPlaceholder'), submitWaiting),
-          filteredWaiting.length === 0
+          activeWaiting.length === 0
             ? h('p', { className: 'dsh-todo-empty' }, t('waitingEmpty'))
-            : renderSectionList(filteredWaiting, renderWaiting, waitingListRef, waitingFilter !== '')
+            : renderSectionList(activeWaiting, renderWaiting, waitingListRef, waitingFilter !== ''),
+          archivedWaiting.length === 0
+            ? null
+            : h(
+                'div',
+                { className: 'dsh-todo-archive' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-todo-archiveToggle',
+                    'aria-expanded': showArchived ? 'true' : 'false',
+                    onClick: () => setShowArchived((previous) => !previous)
+                  },
+                  t(showArchived ? 'archiveHide' : 'archiveShow', { count: String(archivedWaiting.length) })
+                ),
+                showArchived
+                  ? h('ul', { className: 'dsh-todo-list dsh-todo-archiveList' }, archivedWaiting.map((item) => renderWaiting(item)))
+                  : null
+              )
           ),
         ),
         storage.blocked || storage.saveFailed
@@ -1771,6 +1832,11 @@ window.__ModuleLoader__.load({
 .dsh-todo-task:hover .dsh-todo-remove,.dsh-todo-remove:focus-visible{opacity:1}
 @media (hover:none){.dsh-todo-remove{opacity:1}.dsh-todo-cell:not([data-selected='true']):hover{background:transparent}.dsh-todo-task:hover{background:transparent}.dsh-todo-miniCell:not([data-today='true']):hover{background:transparent}}
 .dsh-todo-remove:hover{color:var(--dsw-alias-state-error-primary);background:var(--dsw-alias-bg-layer-2)}
+.dsh-todo-archive{margin-top:6px;display:flex;flex-direction:column;gap:4px}
+.dsh-todo-archiveToggle{align-self:flex-start;padding:1px 9px;border:1px dashed var(--dsw-alias-border-l2);border-radius:999px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;line-height:1.7;cursor:pointer}
+.dsh-todo-archiveToggle:hover{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-border-l1)}
+.dsh-todo-archiveToggle:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-todo-archiveList{opacity:.72}
 .dsh-todo-empty{margin:0;padding:6px 2px;color:var(--dsw-alias-label-secondary);font-size:13px}
 .dsh-todo-add{display:flex;align-items:center;gap:6px;flex:none}
 .dsh-todo-input{flex:1;min-width:0;height:30px;padding:0 9px;border:.5px solid var(--dsw-alias-border-l1);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:inherit;font:inherit;font-size:13px}

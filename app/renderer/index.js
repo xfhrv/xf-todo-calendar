@@ -13,6 +13,8 @@ let offline = null;
 
 /** Per-zone #tag filter; an empty string means "all". */
 let filters = { inbox: '', day: '', waiting: '' };
+/** Ticked waiting items are archived; this reveals them again. */
+let showArchived = false;
 
 /** The #tags written in one title, without the leading #. */
 function tagsOf(title) {
@@ -127,7 +129,7 @@ function rowHtml(row, zone) {
   const isEditing = editing !== null && editing.id === row.id;
   const age =
     zone === 'waiting'
-      ? `<span class="age">${row.done ? '已了结' : waitingAge(row)}</span>`
+      ? `<span class="age">${waitingStamp(row)}</span>`
       : '';
   const body = isEditing
     ? `<input class="editor" data-editor="${row.id}" value="${escapeHtml(editing.draft)}" maxlength="200" />`
@@ -140,6 +142,34 @@ function rowHtml(row, zone) {
       `<button type="button" class="remove" data-remove="${row.id}" title="删除">✕</button>` +
     '</li>'
   );
+}
+
+/** M-D, for the compact start/finish stamps on a waiting row. */
+function shortDay(stamp) {
+  const date = new Date(stamp);
+  return date.getMonth() + 1 + '-' + String(date.getDate()).padStart(2, '0');
+}
+
+/** Whole days between two stamps, at least 1. */
+function daysBetween(from, to) {
+  const startOfDay = (value) => {
+    const date = new Date(value);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  };
+  const days = Math.round((startOfDay(to) - startOfDay(from)) / 86400000);
+  return days <= 0 ? 1 : days;
+}
+
+/** "开始 11-20 · 已等 6 天" while waiting, "11-20 → 11-26 · 共 6 天" once ticked. */
+function waitingStamp(row) {
+  if (!Number.isFinite(row.createdAt) || row.createdAt <= 0) return row.done ? '已完成' : '今天加入';
+  const from = shortDay(row.createdAt);
+  if (row.done) {
+    const finished = Number.isFinite(row.completedAt) && row.completedAt > 0 ? row.completedAt : 0;
+    if (finished <= 0) return `开始 ${from} · 已完成`;
+    return `${from} → ${shortDay(finished)} · 共 ${daysBetween(row.createdAt, finished)} 天`;
+  }
+  return `开始 ${from} · ${waitingAge(row)}`;
 }
 
 function waitingAge(row) {
@@ -173,11 +203,27 @@ function renderZones() {
   for (const [zone, rows, listId, countId, chipsId, emptyText] of zones) {
     const filter = effectiveFilter(zone, rows);
     const visible = filterRows(rows, filter);
-    document.getElementById(countId).textContent = `${visible.length} 项`;
+    if (zone !== 'waiting') {
+      document.getElementById(countId).textContent = `${visible.length} 项`;
+      document.getElementById(chipsId).innerHTML = renderChips(zone, rows, filter);
+      document.getElementById(listId).innerHTML = visible.length === 0
+        ? `<li class="empty">${emptyText}</li>`
+        : visible.map((row) => rowHtml(row, zone)).join('');
+      continue;
+    }
+    // Waiting: ticked rows are archived, not listed.
+    const active = visible.filter((row) => !row.done);
+    const archived = visible.filter((row) => row.done);
+    document.getElementById(countId).textContent = `${active.length} 项`;
     document.getElementById(chipsId).innerHTML = renderChips(zone, rows, filter);
-    document.getElementById(listId).innerHTML = visible.length === 0
+    const list = active.map((row) => rowHtml(row, 'waiting')).join('');
+    const archToggle = archived.length === 0
+      ? ''
+      : `<li class="archive-row"><button type="button" class="archive-toggle" data-archive-toggle="true" aria-expanded="${showArchived ? 'true' : 'false'}">${showArchived ? '已归档 ' + archived.length + ' 条 · 收起' : '已归档 ' + archived.length + ' 条 · 展开'}</button></li>`;
+    const archRows = showArchived ? archived.map((row) => rowHtml(row, 'waiting')).join('') : '';
+    document.getElementById(listId).innerHTML = active.length === 0 && archived.length === 0
       ? `<li class="empty">${emptyText}</li>`
-      : visible.map((row) => rowHtml(row, zone)).join('');
+      : list + archToggle + archRows;
   }
   const date = parseDayKey(selected);
   document.getElementById('day-label').textContent = `${dateLabel(date)} · 周${WEEKDAY[date.getDay()]}`;
@@ -306,6 +352,14 @@ pinButton.addEventListener('click', async () => {
   const current = pinButton.getAttribute('aria-pressed') === 'true';
   const result = await api.setPin(!current);
   setPinUi(Boolean(result.pinned));
+});
+
+/* Reveal or hide the archived waiting rows. */
+document.addEventListener('click', (event) => {
+  const toggle = event.target.closest('[data-archive-toggle]');
+  if (toggle === null) return;
+  showArchived = !showArchived;
+  render();
 });
 
 /* #tag chips: one filter per zone; "全部" clears it. */

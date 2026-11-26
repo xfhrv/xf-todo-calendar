@@ -95,7 +95,7 @@ function applyOp(store, op) {
       const title = normalizeTitle(op.title);
       if (title === '') return { changed: false };
       const id = randomUUID();
-      store.tasks.push({ id, title, date: normalizeDate(op.date), done: false, createdAt: now });
+      store.tasks.push({ id, title, date: normalizeDate(op.date), done: false, createdAt: now, completedAt: 0 });
       markWrite(store);
       return { changed: true, id };
     }
@@ -103,7 +103,7 @@ function applyOp(store, op) {
       const title = normalizeTitle(op.title);
       if (title === '') return { changed: false };
       const id = randomUUID();
-      store.waiting.push({ id, title, done: false, createdAt: now });
+      store.waiting.push({ id, title, done: false, createdAt: now, completedAt: 0 });
       markWrite(store);
       return { changed: true, id };
     }
@@ -113,6 +113,7 @@ function applyOp(store, op) {
       const item = task === undefined ? findWaiting(id) : task;
       if (item === undefined) return { changed: false };
       item.done = !item.done;
+      item.completedAt = item.done ? now : 0;
       markWrite(store);
       return { changed: true, id };
     }
@@ -153,12 +154,12 @@ function applyOp(store, op) {
       if (toWaiting) {
         store.tasks = store.tasks.filter((row) => row.id !== id);
         store.waiting = store.waiting.filter((row) => row.id !== id);
-        store.waiting.push({ id, title: source.title, done: source.done === true, createdAt: source.createdAt });
+        store.waiting.push({ id, title: source.title, done: source.done === true, createdAt: source.createdAt, completedAt: source.completedAt || 0 });
       } else {
         const date = normalizeDate(op.date);
         store.waiting = store.waiting.filter((row) => row.id !== id);
         store.tasks = store.tasks.filter((row) => row.id !== id);
-        store.tasks.push({ id, title: source.title, date, done: source.done === true, createdAt: source.createdAt });
+        store.tasks.push({ id, title: source.title, date, done: source.done === true, createdAt: source.createdAt, completedAt: source.completedAt || 0 });
       }
       markWrite(store);
       return { changed: true, id };
@@ -310,7 +311,7 @@ export function apply(ctx, config) {
                   if (title === '') continue;
                   const existing = store.tasks.find((item) => item.id === row.id);
                   if (existing === undefined) {
-                    store.tasks.push({ id: row.id, title, date: normalizeDate(row.date), done: row.done === true, createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now() });
+                    store.tasks.push({ id: row.id, title, date: normalizeDate(row.date), done: row.done === true, createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now(), completedAt: 0 });
                     touched = true;
                   } else if (existing.title !== title || (existing.date || null) !== normalizeDate(row.date) || existing.done !== (row.done === true)) {
                     existing.title = title;
@@ -326,7 +327,7 @@ export function apply(ctx, config) {
                   if (title === '') continue;
                   const existing = store.waiting.find((item) => item.id === row.id);
                   if (existing === undefined) {
-                    store.waiting.push({ id: row.id, title, done: row.done === true, createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now() });
+                    store.waiting.push({ id: row.id, title, done: row.done === true, createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now(), completedAt: 0 });
                     touched = true;
                   } else if (existing.title !== title || existing.done !== (row.done === true)) {
                     existing.title = title;

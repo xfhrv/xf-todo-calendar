@@ -1,7 +1,7 @@
 {
   "name": "xf-todo-calendar",
   "productName": "XF 待办日历",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "description": "XF 待办日历：收集箱 / 当天 / 等待 三栏 + 日历的本地桌面待办（离线）",

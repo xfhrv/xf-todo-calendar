@@ -68,7 +68,7 @@ export function createStore(storePath) {
       case 'add': {
         const text = title(op.title);
         if (text !== '') {
-          store.tasks.push({ id: randomUUID(), title: text, date: date(op.date), done: false, createdAt: now });
+          store.tasks.push({ id: randomUUID(), title: text, date: date(op.date), done: false, createdAt: now, completedAt: 0 });
           changed = true;
         }
         break;
@@ -76,7 +76,7 @@ export function createStore(storePath) {
       case 'addWaiting': {
         const text = title(op.title);
         if (text !== '') {
-          store.waiting.push({ id: randomUUID(), title: text, done: false, createdAt: now });
+          store.waiting.push({ id: randomUUID(), title: text, done: false, createdAt: now, completedAt: 0 });
           changed = true;
         }
         break;
@@ -85,6 +85,7 @@ export function createStore(storePath) {
         const item = find(String(op.id));
         if (item !== undefined) {
           item.done = !item.done;
+          item.completedAt = item.done ? now : 0;
           changed = true;
         }
         break;

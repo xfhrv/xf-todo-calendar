@@ -276,3 +276,20 @@ main { flex: 1; min-height: 0; overflow: auto; padding: 16px; display: flex; fle
 .chip:hover { color: var(--text); border-color: var(--accent); }
 .chip[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* archived waiting rows */
+.rows .archive-row { display: block; padding: 4px 2px 2px; }
+.archive-toggle {
+  padding: 1px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.7;
+  cursor: pointer;
+}
+.archive-toggle:hover { color: var(--text); border-color: var(--accent); }
+.archive-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.rows .archive-row ~ li { opacity: 0.75; }

@@ -76,7 +76,7 @@ cd plugin && node test.mjs
 
 ## 安装：Windows 桌面端
 
-发行版：从 [Releases](https://github.com/xfhrv/xf-todo-calendar/releases) 下载 `XFTodoCalendar-v1.0.0-windows.zip`（或从 [xfhr.work/xf-todo-calendar](https://xfhr.work/xf-todo-calendar/) 下载），解压后双击 `XFTodoCalendar.exe`。
+发行版：从 [Releases](https://github.com/xfhrv/xf-todo-calendar/releases/tag/v1.1.0) 下载 `XFTodoCalendar-v1.1.0-windows.zip`（或从 [xfhr.work/xf-todo-calendar](https://xfhr.work/xf-todo-calendar/) 下载），解压后双击 `XFTodoCalendar.exe`。
 
 自己从源码构建：
 
